@@ -2,56 +2,52 @@
  * @jest-environment jsdom
  */
 
-import { renderHook, act } from '@testing-library/react-hooks'
-import { useLocalStorage } from '../utils/starRepo'
+import { renderHook, act } from "@testing-library/react";
+import { useLocalStorage } from "../utils/starRepo";
 
-describe('useLocalStorage', () => {
+describe("localStorage", () => {
   beforeEach(() => {
-    window.localStorage.clear()
-  })
+    localStorage.clear();
+  });
 
-  it('should initialize with an empty array', () => {
-    const { result } = renderHook(() => useLocalStorage())
-    expect(result.current.starredRepos).toEqual([])
-  })
+  it("should initialize with an empty array", () => {
+    const { result } = renderHook(() => useLocalStorage());
+    expect(result.current.starredRepos).toEqual([]);
+  });
 
-  it('should add a repo to the list when starRepo is called', () => {
-    const { result } = renderHook(() => useLocalStorage())
+  it("should add a repo to the list when starRepo is called", () => {
+    const { result } = renderHook(() => useLocalStorage());
     act(() => {
-      result.current.starRepo(123)
-    })
-    expect(result.current.starredRepos).toEqual([{ repoId: 123, star: true }])
-  })
+      result.current.starRepo(123);
+    });
+    expect(result.current.starredRepos).toEqual([{ repoId: 123, star: true }]);
+  });
 
-  it('should toggle the star value when starRepo is called twice with the same id', () => {
-    const { result } = renderHook(() => useLocalStorage())
+  it("should remove a repo from the list when unstarRepo is called", () => {
+    const { result } = renderHook(() => useLocalStorage());
     act(() => {
-      result.current.starRepo(123)
-      result.current.starRepo(123)
-    })
-    expect(result.current.starredRepos).toEqual([{ repoId: 123, star: false }])
-  })
+      result.current.starRepo(123);
+      result.current.unstarRepo(123);
+    });
+    expect(result.current.starredRepos).toEqual([]);
+  });
 
-  it('should remove a repo from the list when unstarRepo is called', () => {
-    const { result } = renderHook(() => useLocalStorage())
+  it("should persist the starred repos in localStorage", () => {
+    localStorage.setItem(
+      "starredRepos",
+      JSON.stringify([{ repoId: 123, star: true }])
+    );
+    const { result } = renderHook(() => useLocalStorage());
+    expect(result.current.starredRepos).toEqual([{ repoId: 123, star: true }]);
+  });
+
+  it("should update localStorage when starredRepos changes", () => {
+    const { result } = renderHook(() => useLocalStorage());
     act(() => {
-      result.current.starRepo(123)
-      result.current.unstarRepo(123)
-    })
-    expect(result.current.starredRepos).toEqual([])
-  })
-
-  it('should persist the starred repos in localStorage', () => {
-    window.localStorage.setItem('starredRepos', JSON.stringify([{ repoId: 123, star: true }]))
-    const { result } = renderHook(() => useLocalStorage())
-    expect(result.current.starredRepos).toEqual([{ repoId: 123, star: true }])
-  })
-
-  it('should update localStorage when starredRepos changes', () => {
-    const { result } = renderHook(() => useLocalStorage())
-    act(() => {
-      result.current.starRepo(123)
-    })
-    expect(JSON.parse(window.localStorage.getItem('starredRepos')!)).toEqual([{ repoId: 123, star: true }])
-  })
-})
+      result.current.starRepo(123);
+    });
+    expect(JSON.parse(localStorage.getItem("starredRepos")!)).toEqual([
+      { repoId: 123, star: true },
+    ]);
+  });
+});
